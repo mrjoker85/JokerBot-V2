@@ -1,5 +1,13 @@
-const client = require("discord.js");
 const Discord = require("discord.js");
+const client = new Discord.Client();
+const config = require("./config.json");
+
+
+
+client.on("ready",()=>{
+    console.log("TicketBot is online!");
+    client.user.setActivity("type !ticket help to get started");
+});
 
 client.on("message",async message=>{
     if(message.author.bot||message.type=="dm")return;

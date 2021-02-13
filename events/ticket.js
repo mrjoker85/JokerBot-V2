@@ -1,3 +1,6 @@
+const client = require("discord.js");
+const Discord = require("discord.js");
+
 client.on("message",async message=>{
     if(message.author.bot||message.type=="dm")return;
     var arg = message.content.toLowerCase().split(" ");

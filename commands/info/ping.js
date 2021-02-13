@@ -15,7 +15,7 @@ module.exports = {
         const embed = new MessageEmbed()
             .setTitle('🏓Pong!')
             .setColor(`RANDOM`)
-            .setDescription(`Ping Shoma ${client.ws.ping}MS\nPing Bot ${Math.floor(msg.createdAt - message.createdAt)}MS!`)
+            .setDescription(`Ping Bot ${client.ws.ping}MS\nPing Shoma ${Math.floor(msg.createdAt - message.createdAt)}MS!`)
             await message.channel.send(embed)
             msg.delete()
 

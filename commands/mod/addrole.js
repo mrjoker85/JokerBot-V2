@@ -1,4 +1,4 @@
-const { Message,client } = require('discord.js')
+const { Message,client,Permission } = require('discord.js')
 
 module.exports = {
     name : 'addrole',

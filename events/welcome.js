@@ -9,6 +9,5 @@ client.on(`guildMemberAdd`, guildMember =>{
         .setThumbnail(`${guildMember.user.displayAvatarURL({format: "png", dynamic: true, size: 1024})}`)
         .setDescription(`Salam <@${guildMember.user.id}> Khosh Omadi Be Server Ma Omidvaram Lahazat Khoobi Dashte Bashim Kenar Ham`)
         .setTimestamp()
-// guildMember.guild.channels.cache.get(`798986536455897088`).send(`Salam <@${guildMember.user.id}> Khosh Omadi Be Server Ma Omidvaram Lahazat Khoobi Dashte Bashim Kenar Ham`)
     guildMember.guild.channels.cache.get(`810460377657376798`).send(welcomer)
 });

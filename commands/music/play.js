@@ -8,7 +8,7 @@ module.exports = {
 	admin : false,
 	owner : false,
 	nsfw : false,
-	async execute(client,message,args){
+  	  run : async(client, message, args)=>{
 		if(!args[0]) return message.reply("please provide url or search query!");
 		var msg = message;
 		const voiceChannel = msg.member.voice.channel;

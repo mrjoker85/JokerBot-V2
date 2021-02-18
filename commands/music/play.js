@@ -9,50 +9,64 @@ module.exports = {
 	owner : false,
 	nsfw : false,
   	  run : async(client, message, args)=>{
-		if(!args[0]) return message.reply("please provide url or search query!");
-		var msg = message;
-		const voiceChannel = msg.member.voice.channel;
-		const youtube = client.youtube;
-		const colors = client.colors;
-		const type = "YT";
+				const { channel } = message.member.voice;
+		if (!channel) return message.channel.send('I\'m sorry but you need to be in a voice channel to play music!');
+		const permissions = channel.permissionsFor(message.client.user);
+		if (!permissions.has('CONNECT')) return message.channel.send('I cannot connect to your voice channel, make sure I have the proper permissions!');
+		if (!permissions.has('SPEAK')) return message.channel.send('I cannot speak in this voice channel, make sure I have the proper permissions!');
 
-		const url = args[0] ? args[0].replace(/<(.+)>/g, "$1") : "";
-		const searchString = args.join(" ");
+		const serverQueue = message.client.queue.get(message.guild.id);
+		const songInfo = await ytdl.getInfo(args[0].replace(/<(.+)>/g, '$1'));
+		const song = {
+			id: songInfo.videoDetails.video_id,
+			title: Util.escapeMarkdown(songInfo.videoDetails.title),
+			url: songInfo.videoDetails.video_url
+		};
 
-		if (!voiceChannel) return msg.channel.send("I'm sorry but you need to be in a voice channel to play a music!");
-		const permissions = voiceChannel.permissionsFor(msg.client.user);
-		if (!permissions.has("CONNECT")) {
-				return msg.channel.send("Sorry, but I need **`CONNECT`** permissions to proceed!");
+		if (serverQueue) {
+			serverQueue.songs.push(song);
+			console.log(serverQueue.songs);
+			return message.channel.send(`✅ **${song.title}** has been added to the queue!`);
 		}
-		if (!permissions.has("SPEAK")) {
-				return msg.channel.send("Sorry, but I need **`SPEAK`** permissions to proceed!");
-		}
 
-		// handling f args is YT Uri with playlist
-		if (url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
-			const playlist = await youtube.getPlaylist(url);
-			const videos = await playlist.getVideos();
-			for (const video of Object.values(videos)) {
-					const video2 = await youtube.getVideoByID(video.id); // eslint-disable-line no-await-in-loop
-					await client.players.handleVideo(client,video2, msg, voiceChannel, true, type); // eslint-disable-line no-await-in-loop
+		const queueConstruct = {
+			textChannel: message.channel,
+			voiceChannel: channel,
+			connection: null,
+			songs: [],
+			volume: 2,
+			playing: true
+		};
+		message.client.queue.set(message.guild.id, queueConstruct);
+		queueConstruct.songs.push(song);
+
+		const play = async song => {
+			const queue = message.client.queue.get(message.guild.id);
+			if (!song) {
+				queue.voiceChannel.leave();
+				message.client.queue.delete(message.guild.id);
+				return;
 			}
-			return msg.channel.send(`<:yes:591629527571234819>  **|**  Playlist: **\`${playlist.title}\`** has been added to the queue!`);
-		} else {
-			// else try execute the youtube from given url
-			try {
-				var video = await youtube.getVideo(url);
-			} catch (error) {
-				try {
-					// try to search Youtube form given query
-					var videos = await youtube.searchVideos(searchString, 10);
-					var video = await youtube.getVideoByID(videos[0].id);
-					if (!video) return msg.channel.send("🆘  **|**  I could not obtain any search results.");
-				} catch (err) {
-					console.error(err);
-					return msg.channel.send("🆘  **|**  I could not obtain any search results.");
-				}
-			}
-			return client.players.handleVideo(client,video, msg, voiceChannel, false, type);
+
+			const dispatcher = queue.connection.play(ytdl(song.url))
+				.on('finish', () => {
+					queue.songs.shift();
+					play(queue.songs[0]);
+				})
+				.on('error', error => console.error(error));
+			dispatcher.setVolumeLogarithmic(queue.volume / 5);
+			queue.textChannel.send(`🎶 Start playing: **${song.title}**`);
+		};
+
+		try {
+			const connection = await channel.join();
+			queueConstruct.connection = connection;
+			play(queueConstruct.songs[0]);
+		} catch (error) {
+			console.error(`I could not join the voice channel: ${error}`);
+			message.client.queue.delete(message.guild.id);
+			await channel.leave();
+			return message.channel.send(`I could not join the voice channel: ${error}`);
 		}
 	}
-}
+};

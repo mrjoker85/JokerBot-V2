@@ -7,7 +7,7 @@ module.exports = {
 	usage: '[command name]',
 	args: true,
 	cooldown: 5,
-	async execute(message, args) {
+    run : async(client, message, args)=>{
 		const { channel } = message.member.voice;
 		if (!channel) return message.channel.send('I\'m sorry but you need to be in a voice channel to play music!');
 		const permissions = channel.permissionsFor(message.client.user);

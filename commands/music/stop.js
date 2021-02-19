@@ -3,7 +3,6 @@ const ytSearch = require('yt-search');
 
 //Global queue for your bot. Every server will have a key and value pair in this map. { guild.id, queue_constructor{} }
 const queue = new Map();
-const server_queue = queue.get(message.guild.id);
 const video_player = async (guild, song) => {
     const song_queue = queue.get(guild.id);
 
@@ -41,6 +40,8 @@ module.exports = {
     cooldown: 0,
     description: 'Advanced music bot',
     run : async(client, message, args) => {
+        const server_queue = queue.get(message.guild.id);
+
         stop_song(message, server_queue);
     }
 }
